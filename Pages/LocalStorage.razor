@@ -3,19 +3,55 @@
 
 <h1>Local storage sample</h1>
 
-<input type="text" @bind-value="emailContent.Title" id="email-title" />
+<div>
+    <div class="form-group">
+        <input type="text" @bind-value="emailContent.Title" placeholder="Email subject..." id="email-title" class="form-control" />
+    </div>
 
-<textarea id="email-content" @bind="emailTextContent">
+    <div class="form-group">
+        <input type="text" @bind-value="emailContent.To" placeholder="Email recipient..." id="email-recipient" class="form-control" />
+    </div>
 
-</textarea>
+    <div class="form-group">
+        <textarea id="email-content" @bind="emailTextContent" placeholder="Email content..." class="form-control">
+        </textarea>
+    </div>
 
-<button @onclick="SendEmail">Send</button>
+    <div class="form-group">
+        <button @onclick="SendEmail" class="btn btn-success"><span class="oi oi-check"></span> Send</button>
+    </div>
+</div>
 
 <hr>
 
+<h2>Email list</h2>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <td>Title</td>
+            <td>From</td>
+            <td>To</td>
+            <td>Date sent</td>
+        </tr>
+    </thead>
+    
+    <tbody>
+        @foreach (EmailContent email in emails)
+        {
+            <tr>
+                <td>@email.Title</td>
+                <td>@email.From</td>
+                <td>@email.To</td>
+                <td>@email.DateSend</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
 @code
 {
-    List<Email> emails = new List<Email>();
+    List<EmailContent> emails = new List<EmailContent>();
     
     private string emailTextContent;
     
@@ -25,12 +61,20 @@
     {
         emailContent.EmailID = Guid.NewGuid().ToString();
         emailContent.Content = emailTextContent;
+        emailContent.DateSend = DateTime.Now;
+        emailContent.From = "Default account";
+        emails.Add(emailContent);
         await IJSRuntime.InvokeVoidAsync("saveToLocalStorage", emailContent.EmailID, JsonConvert.SerializeObject(emailContent));
     }
 
     protected override async Task OnInitializedAsync()
     {
         emailTextContent = "";
-        emails = JsonConvert.DeserializeObject<List<Email>>(await IJSRuntime.InvokeAsync<string>("getAllLocalStorageItems"));
+        string emailsAsJson = await IJSRuntime.InvokeAsync<string>("getAllLocalStorageItems");
+        List<string> jsonEmails = JsonConvert.DeserializeObject<List<string>>(emailsAsJson);
+        foreach (string email in jsonEmails)
+        {
+            emails.Add(JsonConvert.DeserializeObject<EmailContent>(email));
+        }
     }
 }
