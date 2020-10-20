@@ -1,12 +1,17 @@
+var connectionStatus;
+
+window.addEventListener("online", () => connectionStatus = "online");
+window.addEventListener("offline", () => connectionStatus = "offline");
+
 function saveToLocalStorage(key, value) {
     localStorage.setItem(key, value);
 }
 
 function getAllLocalStorageItems() {
+    var values = new Array();
     var keys = Object.keys(localStorage);
-    var items;
     for (let index = 0; index < keys.length; index++) {
-        items[keys[index]] = localStorage.getItem(keys[index]);
+        values.push(localStorage.getItem(keys[index]));
     }
-    return JSON.stringify(items);
+    return JSON.stringify(values);
 }
