@@ -1,0 +1,36 @@
+@page "/localstorage-demo"
+@inject IJSRuntime IJSRuntime
+
+<h1>Local storage sample</h1>
+
+<input type="text" @bind-value="emailContent.Title" id="email-title" />
+
+<textarea id="email-content" @bind="emailTextContent">
+
+</textarea>
+
+<button @onclick="SendEmail">Send</button>
+
+<hr>
+
+@code
+{
+    List<Email> emails = new List<Email>();
+    
+    private string emailTextContent;
+    
+    private EmailContent emailContent = new EmailContent();
+
+    private async Task SendEmail()
+    {
+        emailContent.EmailID = Guid.NewGuid().ToString();
+        emailContent.Content = emailTextContent;
+        await IJSRuntime.InvokeVoidAsync("saveToLocalStorage", emailContent.EmailID, JsonConvert.SerializeObject(emailContent));
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        emailTextContent = "";
+        emails = JsonConvert.DeserializeObject<List<Email>>(await IJSRuntime.InvokeAsync<string>("getAllLocalStorageItems"));
+    }
+}
